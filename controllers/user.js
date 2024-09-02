@@ -2,8 +2,20 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const env = require("dotenv");
+const nodemailer = require("nodemailer");
+env.config();
 const Secret = process.env.SecretKey;
-const transporter = require("../config/nodemailer");
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  service: "gmail",
+  auth: {
+    user: process.env.user,
+    pass: process.env.pass,
+  },
+  port: 465,
+  secure: true,
+});
 
 const HandleGetAllUsers = async (req, res) => {
   try {
@@ -19,15 +31,14 @@ const signup = async (req, res) => {
     const { username, email, password } = req.body;
     const ExistingUser = await User.findOne({ email });
     if (ExistingUser) {
-      return res.json.send("User already exists");
+      return res.status(400).json({ message: "User already exists" });
     }
-    const hasedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const NewUser = await User.create({
       username,
       email,
-      password: hasedPassword,
+      password: hashedPassword,
     });
-
     const token = jwt.sign({ userId: NewUser._id }, Secret, {
       expiresIn: "1h",
     });
@@ -35,10 +46,11 @@ const signup = async (req, res) => {
       from: process.env.user,
       to: email,
       subject: "Welcome to platform",
-      text: `Hi ${username} you have successfully signed up`,
+      text: `Hi ${NewUser.username} you have successfully signed up`,
     });
     return res.status(201).json({ token, user: NewUser });
   } catch (err) {
+    console.error("Signup Error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -46,25 +58,27 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const User = await User.findOne({ email });
-    if (!User) {
-      return res.status(400).json.send("Invalid email or password");
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).send("Invalid email");
     }
-    const match = await bcrypt.compare(password, User.password);
+    const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return res.status(400).json.send("Invalid password");
+      return res.status(400).send("Invalid password");
     }
-    const token = jwt.sign({ userId: User._id }, Secret, {
+    const token = jwt.sign({ userId: user._id }, Secret, {
       expiresIn: "1h",
     });
+    console.log("Transporter sendMail:", typeof transporter.sendMail);
     await transporter.sendMail({
       from: process.env.user,
       to: email,
       subject: "Login notification",
-      text: `Hi ${username} you have successfully logged in`,
+      text: `Hi ${user.username} you have successfully logged in`,
     });
-    return res.status(200).json({ token, User});
+    return res.status(200).json({ token, user });
   } catch (err) {
+    console.error("Login Error:", err.message);
     return res.status(500).json({ message: "Server error" });
   }
 };
