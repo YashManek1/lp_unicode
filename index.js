@@ -2,10 +2,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
 const UserRouter = require("./routes/User");
-const { ConnectMongoDb } = require("./connection");
-const PORT = 8000;
+const { ConnectMongoDb } = require("./config/connection");
 const env = require("dotenv");
 const morgan = require("morgan");
+const PORT = process.env.Port;
 
 app.use(morgan("tiny"));
 env.config();
