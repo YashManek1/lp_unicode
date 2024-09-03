@@ -6,6 +6,19 @@ const nodemailer = require("nodemailer");
 env.config();
 const Secret = process.env.SecretKey;
 
+const Joi = require("@hapi/joi");
+
+const SignupSchema = Joi.object({
+  username: Joi.string().min(3).required(),
+  email: Joi.string().min(6).required().email(),
+  password: Joi.string().min(2).required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().min(6).required().email(),
+  password: Joi.string().min(2).required(),
+}).unknown(true);
+
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   service: "gmail",
@@ -33,15 +46,28 @@ const signup = async (req, res) => {
     if (ExistingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const NewUser = await User.create({
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const NewUser = new User({
       username,
       email,
       password: hashedPassword,
     });
+
+    const { error } = await SignupSchema.validateAsync(req.body);
+    if (error) {
+      res.status(400).send(error.details[0].message);
+      return;
+    } else {
+      const SaveUser = await User.save();
+    }
+
     const token = jwt.sign({ userId: NewUser._id }, Secret, {
       expiresIn: "1h",
     });
+
     await transporter.sendMail({
       from: process.env.user,
       to: email,
@@ -66,6 +92,10 @@ const login = async (req, res) => {
     if (!match) {
       return res.status(400).send("Invalid password");
     }
+    const { error } = await loginSchema.validateAsync(req.body);
+    if (error) {
+      return res.status(400).send(error.details[0].message);
+    }
     const token = jwt.sign({ userId: user._id }, Secret, {
       expiresIn: "1h",
     });
@@ -76,6 +106,7 @@ const login = async (req, res) => {
       subject: "Login notification",
       text: `Hi ${user.username} you have successfully logged in`,
     });
+    res.header("auth-token", token).send(token);
     return res.status(200).json({ token, user });
   } catch (err) {
     console.error("Login Error:", err.message);
