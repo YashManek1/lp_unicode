@@ -14,7 +14,7 @@ const URL = process.env.Connect_URI;
 ConnectMongoDb(URL);
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use("/users", UserRouter);
 
 app.listen(PORT, () => {

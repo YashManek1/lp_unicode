@@ -2,7 +2,6 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const env = require("dotenv");
-const nodemailer = require("nodemailer");
 const { sendSignup, sendLogin } = require("./nodemailer");
 env.config();
 const Secret = process.env.SecretKey;
@@ -30,8 +29,8 @@ const signup = async (req, res) => {
       email,
       password: hashedPassword,
     });
-    const SaveUser = await User.save();
-    sendSignup();
+    const SaveUser = await NewUser.save();
+    sendSignup(req, res);
     return res.status(201).json({ token, user: NewUser });
   } catch (err) {
     console.error("Signup Error:", err);
@@ -51,7 +50,7 @@ const login = async (req, res) => {
       return res.status(400).send("Invalid password");
     }
     const token = jwt.sign({ userId: user._id }, Secret); //expiresIn:"1h"
-    sendLogin();
+    sendLogin(req, res);
     return res.status(200).json({ token, user });
   } catch (err) {
     console.error("Login Error:", err.message);

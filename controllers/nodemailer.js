@@ -1,7 +1,9 @@
 const nodemailer = require("nodemailer");
+const User = require("../models/User");
 
 const sendSignup = async (req, res) => {
   try {
+    const { username, email, password } = req.body;
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       service: "gmail",
@@ -25,6 +27,8 @@ const sendSignup = async (req, res) => {
 
 const sendLogin = async (req, res) => {
   try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       service: "gmail",
