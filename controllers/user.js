@@ -3,32 +3,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const env = require("dotenv");
 const nodemailer = require("nodemailer");
+const { sendSignup, sendLogin } = require("./nodemailer");
 env.config();
 const Secret = process.env.SecretKey;
-
-const Joi = require("@hapi/joi");
-
-const SignupSchema = Joi.object({
-  username: Joi.string().min(3).required(),
-  email: Joi.string().min(6).required().email(),
-  password: Joi.string().min(2).required(),
-});
-
-const loginSchema = Joi.object({
-  email: Joi.string().min(6).required().email(),
-  password: Joi.string().min(2).required(),
-}).unknown(true);
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  service: "gmail",
-  auth: {
-    user: process.env.user,
-    pass: process.env.pass,
-  },
-  port: 465,
-  secure: true,
-});
 
 const HandleGetAllUsers = async (req, res) => {
   try {
@@ -46,34 +23,15 @@ const signup = async (req, res) => {
     if (ExistingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
-
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
     const NewUser = new User({
       username,
       email,
       password: hashedPassword,
     });
-
-    const { error } = await SignupSchema.validateAsync(req.body);
-    if (error) {
-      res.status(400).send(error.details[0].message);
-      return;
-    } else {
-      const SaveUser = await User.save();
-    }
-
-    const token = jwt.sign({ userId: NewUser._id }, Secret, {
-      expiresIn: "1h",
-    });
-
-    await transporter.sendMail({
-      from: process.env.user,
-      to: email,
-      subject: "Welcome to platform",
-      text: `Hi ${NewUser.username} you have successfully signed up`,
-    });
+    const SaveUser = await User.save();
+    sendSignup();
     return res.status(201).json({ token, user: NewUser });
   } catch (err) {
     console.error("Signup Error:", err);
@@ -92,21 +50,8 @@ const login = async (req, res) => {
     if (!match) {
       return res.status(400).send("Invalid password");
     }
-    const { error } = await loginSchema.validateAsync(req.body);
-    if (error) {
-      return res.status(400).send(error.details[0].message);
-    }
-    const token = jwt.sign({ userId: user._id }, Secret, {
-      expiresIn: "1h",
-    });
-    console.log("Transporter sendMail:", typeof transporter.sendMail);
-    await transporter.sendMail({
-      from: process.env.user,
-      to: email,
-      subject: "Login notification",
-      text: `Hi ${user.username} you have successfully logged in`,
-    });
-    res.header("auth-token", token).send(token);
+    const token = jwt.sign({ userId: user._id }, Secret); //expiresIn:"1h"
+    sendLogin();
     return res.status(200).json({ token, user });
   } catch (err) {
     console.error("Login Error:", err.message);
@@ -143,3 +88,16 @@ module.exports = {
   HandleUpdateUsers,
   HandleDeleteUsers,
 };
+
+/* const Joi = require("@hapi/joi");
+
+const SignupSchema = Joi.object({
+  username: Joi.string().min(3).required(),
+  email: Joi.string().min(6).required().email(),
+  password: Joi.string().min(2).required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().min(6).required().email(),
+  password: Joi.string().min(2).required(),
+}).unknown(true); */
