@@ -1,10 +1,10 @@
-const express = require("express");
-const mongoose = require("mongoose");
+import express from "express";
+import mongoose from "mongoose";
 const app = express();
-const UserRouter = require("./routes/User");
-const { ConnectMongoDb } = require("./config/connection");
-const env = require("dotenv");
-const morgan = require("morgan");
+import UserRouter from "./routes/User.js";
+import ConnectMongoDb from "./config/connection.js";
+import env from "dotenv";
+import morgan from "morgan";
 
 app.use(morgan("tiny"));
 env.config();

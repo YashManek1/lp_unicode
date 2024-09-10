@@ -1,19 +1,24 @@
-const express = require("express");
+import express from "express";
 const Router = express.Router();
-const verify = require("../middlewares/authVerify");
+import verify from "../middlewares/authVerify.js";
 
-const {
+import {
   HandleGetAllUsers,
   signup,
   login,
   HandleUpdateUsers,
   HandleDeleteUsers,
-} = require("../controllers/user");
+} from "../controllers/user.js";
+
+import { uploadprofilepic, updateprofilepic } from "../controllers/image.js";
+import upload from "../middlewares/multer.js";
 
 Router.get("/", verify, HandleGetAllUsers);
 Router.post("/signup", signup);
 Router.post("/login", login);
 Router.put("/:id", verify, HandleUpdateUsers);
 Router.delete("/:id", verify, HandleDeleteUsers);
+Router.post("/uploadpic", verify, upload.single("image"), uploadprofilepic);
+Router.post("/updatepic", verify, upload.single("image"), updateprofilepic);
 
-module.exports = Router;
+export default Router;

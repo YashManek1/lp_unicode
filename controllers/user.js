@@ -1,8 +1,8 @@
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const env = require("dotenv");
-const { sendSignup, sendLogin } = require("./nodemailer");
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import env from "dotenv";
+import { sendSignup, sendLogin } from "./nodemailer.js";
 env.config();
 const Secret = process.env.SecretKey;
 
@@ -80,7 +80,7 @@ const HandleDeleteUsers = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   HandleGetAllUsers,
   signup,
   login,

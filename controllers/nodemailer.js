@@ -1,5 +1,5 @@
-const nodemailer = require("nodemailer");
-const User = require("../models/User");
+import nodemailer from "nodemailer";
+import User from "../models/User.js";
 
 const sendSignup = async (req, res) => {
   try {
@@ -50,4 +50,4 @@ const sendLogin = async (req, res) => {
   }
 };
 
-module.exports = { sendSignup, sendLogin };
+export { sendSignup, sendLogin };
