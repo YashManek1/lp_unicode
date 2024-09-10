@@ -8,9 +8,10 @@ import {
   login,
   HandleUpdateUsers,
   HandleDeleteUsers,
+  uploadprofilepic,
+  updateprofilepic,
 } from "../controllers/user.js";
 
-import { uploadprofilepic, updateprofilepic } from "../controllers/image.js";
 import upload from "../middlewares/multer.js";
 
 Router.get("/", verify, HandleGetAllUsers);
@@ -18,7 +19,7 @@ Router.post("/signup", signup);
 Router.post("/login", login);
 Router.put("/:id", verify, HandleUpdateUsers);
 Router.delete("/:id", verify, HandleDeleteUsers);
-Router.post("/uploadpic", verify, upload.single("image"), uploadprofilepic);
-Router.post("/updatepic", verify, upload.single("image"), updateprofilepic);
+Router.patch("/uploadpic", verify, upload.single("image"), uploadprofilepic);
+Router.patch("/updatepic", verify, upload.single("image"), updateprofilepic);
 
 export default Router;
