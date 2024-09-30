@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import env from "dotenv";
 import cloudinary from "../config/cloudinary.js";
 import { sendSignup, sendLogin } from "./nodemailer.js";
+
 env.config();
 const Secret = process.env.SecretKey;
 
@@ -13,49 +14,6 @@ const HandleGetAllUsers = async (req, res) => {
     return res.status(200).json(allDbUsers);
   } catch (err) {
     return res.status(404);
-  }
-};
-
-const signup = async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-    const ExistingUser = await User.findOne({ email });
-    if (ExistingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const NewUser = new User({
-      username,
-      email,
-      password: hashedPassword,
-    });
-    const SaveUser = await NewUser.save();
-    sendSignup(req, res);
-    return res.status(201).json({ token, user: NewUser });
-  } catch (err) {
-    console.error("Signup Error:", err);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).send("Invalid email");
-    }
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      return res.status(400).send("Invalid password");
-    }
-    const token = jwt.sign({ userId: user._id }, Secret); //expiresIn:"1h"
-    sendLogin(req, res);
-    return res.status(200).json({ token, user });
-  } catch (err) {
-    console.error("Login Error:", err.message);
-    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -78,6 +36,71 @@ const HandleDeleteUsers = async (req, res) => {
     res.send(deleteid);
   } catch (err) {
     return res.status(404);
+  }
+};
+
+const signup = async (req, res) => {
+  try {
+    const {
+      username,
+      email,
+      password,
+      resume,
+      tech_stack,
+      field_of_interest,
+      experience_level,
+      bio,
+    } = req.body;
+    const ExistingUser = await User.findOne({ email });
+    if (ExistingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const resumeinput = await cloudinary.uploader.upload(req.file.path, {
+      folder: "resume",
+    });
+    const NewUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+      resume: {
+        resume_url: resumeinput.secure_url,
+        public_id: resumeinput.public_id,
+      },
+      tech_stack: tech_stack.split(","),
+      field_of_interest,
+      experience_level,
+      bio,
+    });
+    await NewUser.save();
+    sendSignup(req, res);
+    return res
+      .status(201)
+      .json({ message: "User successfully registered", user: NewUser });
+  } catch (err) {
+    console.error("Signup Error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).send("Invalid email");
+    }
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(400).send("Invalid password");
+    }
+    const token = jwt.sign({ userId: user._id }, Secret); //expiresIn:"1h"
+    sendLogin(req, res);
+    return res.status(200).json({ token, user });
+  } catch (err) {
+    console.error("Login Error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 

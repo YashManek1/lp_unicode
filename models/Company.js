@@ -1,18 +1,13 @@
 import mongoose from "mongoose";
 import validator from "validator";
 
-const UserSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
+const CompanySchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
     unique: true,
-    validate(value) {
-      if (!validator.isEmail(value)) {
+    validate(Value) {
+      if (!validator.isEmail(Value)) {
         throw new error("Invalid email-id");
       }
     },
@@ -34,42 +29,18 @@ const UserSchema = new mongoose.Schema({
       }
     },
   },
-  profilePicture: {
-    url: {
-      type: String,
-      default: "",
-    },
-    public_id: {
-      type: String,
-      default: "",
-    },
-  },
-  resume: {
-    resume_url: {
-      type: String,
-      required: true,
-    },
-    public_id: {
-      type: String,
-    },
-  },
-  tech_stack: {
-    type: [String],
-    required: true,
-  },
-  field_of_interest: {
+  name: {
     type: String,
     required: true,
   },
-  experience_level: {
+  website_url: {
     type: String,
+    unique: true,
     required: true,
   },
-  bio: {
+  description: {
     type: String,
   },
 });
 
-const User = mongoose.model("User", UserSchema);
-
-export default User;
+export default mongoose.model("Company", CompanySchema);

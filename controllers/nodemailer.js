@@ -1,19 +1,29 @@
 import nodemailer from "nodemailer";
 import User from "../models/User.js";
 
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  service: "gmail",
+  auth: {
+    user: process.env.user,
+    pass: process.env.pass,
+  },
+  port: 465,
+  secure: true,
+});
+
 const sendSignup = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      service: "gmail",
-      auth: {
-        user: process.env.user,
-        pass: process.env.pass,
-      },
-      port: 465,
-      secure: true,
-    });
+    const {
+      username,
+      email,
+      password,
+      resume,
+      tech_stack,
+      field_of_interest,
+      experience_level,
+      bio,
+    } = req.body;
     await transporter.sendMail({
       from: process.env.user,
       to: email,
@@ -29,16 +39,6 @@ const sendLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      service: "gmail",
-      auth: {
-        user: process.env.user,
-        pass: process.env.pass,
-      },
-      port: 465,
-      secure: true,
-    });
     await transporter.sendMail({
       from: process.env.user,
       to: email,

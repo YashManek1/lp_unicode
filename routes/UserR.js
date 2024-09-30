@@ -10,12 +10,12 @@ import {
   HandleDeleteUsers,
   uploadprofilepic,
   updateprofilepic,
-} from "../controllers/user.js";
+} from "../controllers/userC.js";
 
 import upload from "../middlewares/multer.js";
 
 Router.get("/", verify, HandleGetAllUsers);
-Router.post("/signup", signup);
+Router.post("/signup", upload.single("resume"), signup);
 Router.post("/login", login);
 Router.put("/:id", verify, HandleUpdateUsers);
 Router.delete("/:id", verify, HandleDeleteUsers);
