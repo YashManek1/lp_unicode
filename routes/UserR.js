@@ -1,6 +1,6 @@
 import express from "express";
 const Router = express.Router();
-import verify from "../middlewares/authVerify.js";
+import { authUser } from "../middlewares/authVerify.js";
 
 import {
   HandleGetAllUsers,
@@ -14,12 +14,12 @@ import {
 
 import upload from "../middlewares/multer.js";
 
-Router.get("/", verify, HandleGetAllUsers);
+Router.get("/", authUser, HandleGetAllUsers);
 Router.post("/signup", upload.single("resume"), signup);
 Router.post("/login", login);
-Router.put("/:id", verify, HandleUpdateUsers);
-Router.delete("/:id", verify, HandleDeleteUsers);
-Router.patch("/uploadpic", verify, upload.single("image"), uploadprofilepic);
-Router.patch("/updatepic", verify, upload.single("image"), updateprofilepic);
+Router.put("/:id", authUser, HandleUpdateUsers);
+Router.delete("/:id", authUser, HandleDeleteUsers);
+Router.patch("/uploadpic", authUser, upload.single("image"), uploadprofilepic);
+Router.patch("/updatepic", authUser, upload.single("image"), updateprofilepic);
 
 export default Router;

@@ -1,7 +1,18 @@
 import mongoose from "mongoose";
 import validator from "validator";
 
-const CompanySchema = new mongoose.Schema({
+const RecruiterSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  age: {
+    type: Number,
+    required: true,
+  },
+  gender: {
+    type: String,
+  },
   email: {
     type: String,
     required: true,
@@ -29,24 +40,29 @@ const CompanySchema = new mongoose.Schema({
       }
     },
   },
-  name: {
+  join_date: {
     type: String,
     required: true,
   },
-  website_url: {
+  qualification: {
     type: String,
-    unique: true,
     required: true,
   },
-  description: {
+  current_position: {
     type: String,
+    required: true,
   },
-  recruiters: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Recruiter",
-    },
-  ],
+  salary: {
+    type: Number,
+  },
+  company_name: {
+    type: String,
+    required: true,
+  },
+  company_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Company",
+  },
 });
 
-export default mongoose.model("Company", CompanySchema);
+export default mongoose.model("Recruiter", RecruiterSchema);

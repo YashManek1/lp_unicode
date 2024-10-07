@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import User from "../models/User.js";
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -14,21 +13,12 @@ const transporter = nodemailer.createTransport({
 
 const sendSignup = async (req, res) => {
   try {
-    const {
-      username,
-      email,
-      password,
-      resume,
-      tech_stack,
-      field_of_interest,
-      experience_level,
-      bio,
-    } = req.body;
+    const { email } = req.body;
     await transporter.sendMail({
       from: process.env.user,
       to: email,
       subject: "Welcome to platform",
-      text: `Hi ${NewUser.username} you have successfully signed up`,
+      text: `Hi you have successfully signed up`,
     });
   } catch (err) {
     console.log(err);
@@ -38,12 +28,11 @@ const sendSignup = async (req, res) => {
 const sendLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
     await transporter.sendMail({
       from: process.env.user,
       to: email,
       subject: "Login notification",
-      text: `Hi ${user.username} you have successfully logged in`,
+      text: `Hi you have successfully logged in`,
     });
   } catch (err) {
     console.log(err);
