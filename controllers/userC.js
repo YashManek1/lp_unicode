@@ -1,8 +1,10 @@
-import User from "../models/User.js";
+import UserModel from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import env from "dotenv";
 import cloudinary from "../config/cloudinary.js";
+import JobModel from "../models/Job.js";
+import ApplicationModel from "../models/Application.js";
 import { sendSignup, sendLogin } from "./nodemailer.js";
 
 env.config();
@@ -10,7 +12,7 @@ const Secret = process.env.SecretKey;
 
 const HandleGetAllUsers = async (req, res) => {
   try {
-    const allDbUsers = await User.find();
+    const allDbUsers = await UserModel.find();
     return res.status(200).json(allDbUsers);
   } catch (err) {
     return res.status(404);
@@ -19,7 +21,7 @@ const HandleGetAllUsers = async (req, res) => {
 
 const HandleUpdateUsers = async (req, res) => {
   try {
-    const Updateid = await User.findByIdAndUpdate(req.params.id, req.body);
+    const Updateid = await UserModel.findByIdAndUpdate(req.params.id, req.body);
     res.send(req.body);
     return res.json({ status: "Success" });
   } catch (err) {
@@ -29,7 +31,7 @@ const HandleUpdateUsers = async (req, res) => {
 
 const HandleDeleteUsers = async (req, res) => {
   try {
-    const deleteid = await User.findByIdAndDelete(req.params.id);
+    const deleteid = await UserModel.findByIdAndDelete(req.params.id);
     if (!req.params.id) {
       res.status(400).send();
     }
@@ -51,7 +53,7 @@ const signup = async (req, res) => {
       experience_level,
       bio,
     } = req.body;
-    const ExistingUser = await User.findOne({ email });
+    const ExistingUser = await UserModel.findOne({ email });
     if (ExistingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -60,7 +62,7 @@ const signup = async (req, res) => {
     const resumeinput = await cloudinary.uploader.upload(req.file.path, {
       folder: "resume",
     });
-    const NewUser = new User({
+    const NewUser = new UserModel({
       username,
       email,
       password: hashedPassword,
@@ -87,7 +89,7 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await UserModel.findOne({ email });
     if (!user) {
       return res.status(400).send("Invalid email");
     }
@@ -112,7 +114,7 @@ const uploadprofilepic = async (req, res) => {
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "profilepics",
     });
-    const user = await User.findById(req.user.userId);
+    const user = await UserModel.findById(req.user.userId);
     if (!user) {
       return res.status(404).send("User not found.");
     }
@@ -131,7 +133,7 @@ const uploadprofilepic = async (req, res) => {
 
 const updateprofilepic = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await UserModel.findById(req.user.userId);
     if (!user) {
       return res.status(404).send("User not found");
     }
@@ -154,6 +156,36 @@ const updateprofilepic = async (req, res) => {
   }
 };
 
+const applyJob = async (req, res) => {
+  try {
+    const { job_title, status, applied_date, company_name, recruiter_id } =
+      req.body;
+    const user = await UserModel.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    const job = await JobModel.findOne({
+      title: job_title,
+      company_name,
+      recruiter_id,
+    });
+    if (!job) {
+      return res.status(404).send("Job not found");
+    }
+    const newApplication = new ApplicationModel({
+      user_id: user._id,
+      job_id: job._id,
+      status,
+      applied_date,
+    });
+    await newApplication.save();
+    return res.status(201).json({ Application: newApplication });
+  } catch (err) {
+    console.error(err);
+    return res.status(400).json({ message: "Server error", err });
+  }
+};
+
 export {
   HandleGetAllUsers,
   signup,
@@ -162,17 +194,5 @@ export {
   HandleDeleteUsers,
   uploadprofilepic,
   updateprofilepic,
+  applyJob,
 };
-
-/* const Joi = require("@hapi/joi");
-
-const SignupSchema = Joi.object({
-  username: Joi.string().min(3).required(),
-  email: Joi.string().min(6).required().email(),
-  password: Joi.string().min(2).required(),
-});
-
-const loginSchema = Joi.object({
-  email: Joi.string().min(6).required().email(),
-  password: Joi.string().min(2).required(),
-}).unknown(true); */

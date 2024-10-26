@@ -10,6 +10,7 @@ import {
   HandleDeleteUsers,
   uploadprofilepic,
   updateprofilepic,
+  applyJob,
 } from "../controllers/userC.js";
 
 import upload from "../middlewares/multer.js";
@@ -21,5 +22,6 @@ Router.put("/:id", authUser, HandleUpdateUsers);
 Router.delete("/:id", authUser, HandleDeleteUsers);
 Router.patch("/uploadpic", authUser, upload.single("image"), uploadprofilepic);
 Router.patch("/updatepic", authUser, upload.single("image"), updateprofilepic);
+Router.post("/apply", authUser, applyJob);
 
 export default Router;

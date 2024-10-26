@@ -3,7 +3,9 @@ import CompanyModel from "../models/Company.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import env from "dotenv";
+import JobModel from "../models/Job.js";
 import { sendSignup, sendLogin } from "./nodemailer.js";
+import ApplicationModel from "../models/Application.js";
 
 env.config();
 const Secret = process.env.SecretKey;
@@ -83,4 +85,69 @@ const LoginRecruiter = async (req, res) => {
   }
 };
 
-export { SignupRecruiter, LoginRecruiter };
+const CreateJob = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      requirements,
+      salary_range,
+      location,
+      job_type,
+      recruiter_name,
+    } = req.body;
+    const recruiter = await RecruiterModel.findById(req.recruiter.recruiterId);
+    if (!recruiter) {
+      return res.status(401).send("Recruiter not found");
+    }
+    if (recruiter_name !== recruiter.name) {
+      return res
+        .status(403)
+        .send("Recruiter not authorized for this operation");
+    }
+    const newJob = new JobModel({
+      title: title,
+      description: description,
+      requirements: requirements.split(","),
+      salary_range: salary_range,
+      location: location,
+      job_type: job_type,
+      recruiter_name: recruiter_name,
+      recruiter_id: recruiter._id,
+      company_name: recruiter.company_name,
+      company_id: recruiter.company_id,
+    });
+    await newJob.save();
+    return res.status(201).json({ Job: newJob });
+  } catch (err) {
+    res.status(500).json({ message: "Error creating job." });
+  }
+};
+
+const viewApplicants = async (req, res) => {
+  try {
+    const jobs = await JobModel.find({
+      recruiter_id: req.recruiter.recruiterId,
+    });
+    if (jobs.length == 0) {
+      return res
+        .status(404)
+        .json({ message: "No jobs found for this recruiter" });
+    }
+    const jobIDs = jobs.map((job) => job._id);
+    const applications = await ApplicationModel.find({
+      job_id: { $in: jobIDs },
+    })
+      .populate("user_id", "username email resume")
+      .select("job_title status applied_date user_id username resume");
+    if (applications.length == 0) {
+      return res.status(404).send("No applicants found for this job");
+    }
+    return res.status(201).json({ Applicants: applications });
+  } catch (err) {
+    console.error(err);
+    return res.status(404).send("Server error ", err);
+  }
+};
+
+export { SignupRecruiter, LoginRecruiter, CreateJob, viewApplicants };
