@@ -32,4 +32,20 @@ const authRecruiter = async (req, res, next) => {
   }
 };
 
-export { authUser, authRecruiter };
+const authCompany = async (req, res, next) => {
+  const token = req.header("Authorization");
+  if (!token) return res.status(401).send("Access Denied");
+  try {
+    const bearerToken = token.split(" ")[1];
+    if (bearerToken == null) {
+      return res.status(401).send("token null");
+    }
+    const verified = jwt.verify(bearerToken, process.env.SecretKey);
+    req.company = verified;
+    next();
+  } catch (err) {
+    res.status(400).send("Invalid token");
+  }
+};
+
+export { authUser, authRecruiter, authCompany };

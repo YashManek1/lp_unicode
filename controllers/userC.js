@@ -5,7 +5,9 @@ import env from "dotenv";
 import cloudinary from "../config/cloudinary.js";
 import JobModel from "../models/Job.js";
 import ApplicationModel from "../models/Application.js";
+import FollowerModel from "../models/follower.js";
 import { sendSignup, sendLogin } from "./nodemailer.js";
+import follower from "../models/follower.js";
 
 env.config();
 const Secret = process.env.SecretKey;
@@ -186,6 +188,82 @@ const applyJob = async (req, res) => {
   }
 };
 
+const follow = async (req, res) => {
+  try {
+    const { following_id, following_type } = req.body;
+    console.log(following_type);
+    if (!["User", "Company"].includes(following_type)) {
+      return res.status(400).json({ message: "Following type is invalid" });
+    }
+    const followExists = await FollowerModel.findOne({
+      follower_id: req.user.userId,
+      following_id,
+      following_type,
+    });
+    if (followExists) {
+      return res.status(400).json({ message: "User is already following" });
+    }
+    const newFollow = new FollowerModel({
+      follower_id: req.user.userId,
+      following_id,
+      following_type,
+    });
+    await newFollow.save();
+    return res.status(201).json({
+      message: `Successfully followed the ${following_type}`,
+      Follow: newFollow,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error", err });
+  }
+};
+
+const unfollow = async (req, res) => {
+  try {
+    const { following_id, following_type } = req.body;
+    const unfollow = await FollowerModel.findOneAndDelete({
+      follower_id: req.user.userId,
+      following_id,
+      following_type,
+    });
+    if (!unfollow) {
+      return res.status(400).json({ message: "User is already not following" });
+    }
+    return res
+      .status(201)
+      .json({ message: `Successfully unfollowed the ${following_type}` });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error", err });
+  }
+};
+
+const getAllFollowers = async (req, res) => {
+  try {
+    const following_id = req.params.id;
+    const followers = await FollowerModel.find({
+      following_id: following_id,
+    }).populate("follower_id", "username");
+    return res.status(201).send(followers);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error", err });
+  }
+};
+
+const getAllFollowing = async (req, res) => {
+  try {
+    const following = await FollowerModel.find({
+      follower_id: req.user.userId,
+    }).populate("following_id", "username following_type");
+    return res.status(201).send(following);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error", err });
+  }
+};
+
 export {
   HandleGetAllUsers,
   signup,
@@ -195,4 +273,8 @@ export {
   uploadprofilepic,
   updateprofilepic,
   applyJob,
+  follow,
+  unfollow,
+  getAllFollowers,
+  getAllFollowing,
 };
