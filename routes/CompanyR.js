@@ -7,6 +7,7 @@ import {
   deleteCompany,
   viewRecruiters,
   removeRecruiter,
+  addRecruiter,
 } from "../controllers/CompanyC.js";
 
 import {
@@ -42,5 +43,6 @@ Router.put("/update/:id", authCompany, updateCompany);
 Router.delete("/delete/:id", authCompany, deleteCompany);
 Router.get("/viewRecruiters", authCompany, viewRecruiters);
 Router.delete("/removeRecruiter/:id", authCompany, removeRecruiter);
+Router.post("/addRecruiter/:id", authCompany, addRecruiter);
 
 export default Router;

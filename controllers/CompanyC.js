@@ -2,6 +2,7 @@ import CompanyModel from "../models/Company.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import env from "dotenv";
+import RecruiterModel from "../models/Recruiter.js";
 
 env.config();
 const Secret = process.env.SecretKey;
@@ -130,6 +131,7 @@ const removeRecruiter = async (req, res) => {
   try {
     const CompanyId = req.company.CompanyId;
     const recruiterId = req.params.id;
+    const recruiter = await RecruiterModel.findById(recruiterId);
     const company = await CompanyModel.findById(CompanyId);
     if (!company) {
       return res
@@ -137,10 +139,38 @@ const removeRecruiter = async (req, res) => {
         .json({ message: "Company profile does not exist" });
     }
     company.recruiters.pull(recruiterId);
+    recruiter.company_name = null;
+    recruiter.company_id = null;
+    await recruiter.save();
     await company.save();
     return res
       .status(201)
       .json({ message: "Successfully removed the recruiter" });
+  } catch (err) {
+    console.error("Login error", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const addRecruiter = async (req, res) => {
+  try {
+    const CompanyId = req.company.CompanyId;
+    const recruiterId = req.params.id;
+    const recruiter = await RecruiterModel.findById(recruiterId);
+    const company = await CompanyModel.findById(CompanyId);
+    if (!company) {
+      return res
+        .status(400)
+        .json({ message: "Company profile does not exist" });
+    }
+    company.recruiters.push(recruiterId);
+    recruiter.company_name = company.name;
+    recruiter.company_id = CompanyId;
+    await recruiter.save();
+    await company.save();
+    return res
+      .status(201)
+      .json({ message: "Successfully added the recruiter" });
   } catch (err) {
     console.error("Login error", err);
     return res.status(500).json({ message: "Server error" });
@@ -157,4 +187,5 @@ export {
   updateCompany,
   deleteCompany,
   removeRecruiter,
+  addRecruiter,
 };
