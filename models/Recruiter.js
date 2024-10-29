@@ -41,8 +41,8 @@ const RecruiterSchema = new mongoose.Schema({
     },
   },
   join_date: {
-    type: String,
-    required: true,
+    type: Date,
+    default: Date.now(),
   },
   qualification: {
     type: String,

@@ -11,7 +11,7 @@ const FollowerSchema = new mongoose.Schema({
   },
   following_type: {
     type: String,
-    enum: ["User", "Company"],
+    enum: ["users", "company"],
     required: true,
   },
   following_date: {

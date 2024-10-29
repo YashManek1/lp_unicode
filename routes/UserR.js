@@ -11,11 +11,14 @@ import {
   uploadprofilepic,
   updateprofilepic,
   applyJob,
+} from "../controllers/userC.js";
+
+import {
   follow,
   unfollow,
   getAllFollowers,
   getAllFollowing,
-} from "../controllers/userC.js";
+} from "../controllers/FollowC.js";
 
 import {
   createBlog,

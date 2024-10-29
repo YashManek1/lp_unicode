@@ -120,7 +120,42 @@ const CreateJob = async (req, res) => {
     await newJob.save();
     return res.status(201).json({ Job: newJob });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Error creating job." });
+  }
+};
+
+const updateJob = async (req, res) => {
+  try {
+    const job = await JobModel.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    res.status(201).json({ message: "Job details updated successfully", job });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const deleteJob = async (req, res) => {
+  try {
+    const job = await JobModel.findByIdAndDelete(req.params.id);
+    res.status(201).json({ message: "Job deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const viewJobDetails = async (req, res) => {
+  try {
+    const jobs = await JobModel.find({
+      recruiter_id: req.recruiter.recruiterId,
+    });
+    return res.status(201).send(jobs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -150,4 +185,93 @@ const viewApplicants = async (req, res) => {
   }
 };
 
-export { SignupRecruiter, LoginRecruiter, CreateJob, viewApplicants };
+const shortlistApplicants = async (req, res) => {
+  try {
+    const recruiterId = req.recruiter.recruiterId;
+    const applicationId = req.body.applicationId;
+    const application = await ApplicationModel.findById(applicationId).populate(
+      { path: "job_id", select: "recruiter_id" }
+    );
+    if (
+      application &&
+      application.job_id.recruiter_id.toString() === recruiterId.toString()
+    ) {
+      application.status = "shortlisted";
+      res
+        .status(201)
+        .json({ message: "Applicant successfully shortlisted", application });
+    } else {
+      res
+        .status(400)
+        .json({ message: "Unauthorized access to the application" });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(404).send("Server error ", err);
+  }
+};
+
+const rejectApplicants = async (req, res) => {
+  try {
+    const recruiterId = req.recruiter.recruiterId;
+    const applicationId = req.body.applicationId;
+    const application = await ApplicationModel.findById(applicationId).populate(
+      { path: "job_id", select: "recruiter_id" }
+    );
+    if (
+      application &&
+      application.job_id.recruiter_id.toString() === recruiterId.toString()
+    ) {
+      application.status = "rejected";
+      res
+        .status(201)
+        .json({ message: "Applicant successfully rejected", application });
+    } else {
+      res
+        .status(400)
+        .json({ message: "Unauthorized access to the application" });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(404).send("Server error ", err);
+  }
+};
+
+const acceptApplicants = async (req, res) => {
+  try {
+    const recruiterId = req.recruiter.recruiterId;
+    const applicationId = req.body.applicationId;
+    const application = await ApplicationModel.findById(applicationId).populate(
+      { path: "job_id", select: "recruiter_id" }
+    );
+    if (
+      application &&
+      application.job_id.recruiter_id.toString() === recruiterId.toString()
+    ) {
+      application.status = "accepted";
+      res
+        .status(201)
+        .json({ message: "Applicant successfully accepted", application });
+    } else {
+      res
+        .status(400)
+        .json({ message: "Unauthorized access to the application" });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(404).send("Server error ", err);
+  }
+};
+
+export {
+  SignupRecruiter,
+  LoginRecruiter,
+  CreateJob,
+  viewApplicants,
+  updateJob,
+  deleteJob,
+  viewJobDetails,
+  shortlistApplicants,
+  rejectApplicants,
+  acceptApplicants,
+};

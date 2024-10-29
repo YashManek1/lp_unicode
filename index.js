@@ -1,5 +1,4 @@
 import express from "express";
-import mongoose from "mongoose";
 const app = express();
 import UserRouter from "./routes/UserR.js";
 import ConnectMongoDb from "./config/connection.js";
