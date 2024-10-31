@@ -10,6 +10,7 @@ import {
   shortlistApplicants,
   rejectApplicants,
   acceptApplicants,
+  getNoOfApplicants,
 } from "../controllers/RecruiterC.js";
 
 import { authRecruiter } from "../middlewares/authVerify.js";
@@ -26,5 +27,6 @@ Router.get("/jobDetails", authRecruiter, viewJobDetails);
 Router.post("/shortlist", authRecruiter, shortlistApplicants);
 Router.post("/reject", authRecruiter, rejectApplicants);
 Router.post("/accept", authRecruiter, acceptApplicants);
+Router.get("/getNoOfApp/:id", authRecruiter, getNoOfApplicants);
 
 export default Router;

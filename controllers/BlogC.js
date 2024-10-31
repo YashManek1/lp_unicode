@@ -1,3 +1,4 @@
+import Blog from "../models/Blog.js";
 import BlogModel from "../models/Blog.js";
 
 const createBlog = async (req, res) => {
@@ -30,10 +31,31 @@ const createBlog = async (req, res) => {
 const getAllBlogs = async (req, res) => {
   try {
     const blogs = await BlogModel.find();
-    res.status(201).json(blogs);
+    return res.status(201).json(blogs);
   } catch (error) {
     console.error(err);
-    res.status(500).json({ message: "Error fetching blog posts" });
+    return res.status(500).json({ message: "Error fetching blog posts" });
+  }
+};
+
+const getBlogsOfUser = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const blogs = await BlogModel.find({ author_id: userId });
+    return res.status(201).json(blogs);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error fetching blog posts" });
+  }
+};
+const getBlogsOfCompany = async (req, res) => {
+  try {
+    const companyId = req.company.CompanyId;
+    const blogs = await BlogModel.find({ author_id: companyId });
+    return res.status(201).json(blogs);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Error fetching blog posts" });
   }
 };
 
@@ -42,21 +64,28 @@ const updateBlog = async (req, res) => {
     const blog = await BlogModel.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
-    res.status(201).json(blog);
+    return res.status(201).json(blog);
   } catch (error) {
     console.error(err);
-    res.status(500).json({ message: "Error updating blog post" });
+    return res.status(500).json({ message: "Error updating blog post" });
   }
 };
 
 const deleteBlog = async (req, res) => {
   try {
     await BlogModel.findByIdAndDelete(req.params.id);
-    res.status(201).json({ message: "Blog post deleted" });
+    return res.status(201).json({ message: "Blog post deleted" });
   } catch (error) {
     console.error(err);
-    res.status(500).json({ message: "Error deleting blog post" });
+    return res.status(500).json({ message: "Error deleting blog post" });
   }
 };
 
-export { createBlog, getAllBlogs, updateBlog, deleteBlog };
+export {
+  createBlog,
+  getAllBlogs,
+  updateBlog,
+  deleteBlog,
+  getBlogsOfUser,
+  getBlogsOfCompany,
+};

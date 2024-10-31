@@ -186,6 +186,27 @@ const applyJob = async (req, res) => {
   }
 };
 
+const getUserAppliedJobs = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    let jobs = await ApplicationModel.find({ user_id: userId }).populate(
+      "job_id",
+      "title description requirements salary_rangelocation job_type company_name"
+    );
+    if (!jobs.length === 0) {
+      return res.status(400).send("User has not applied for any jobs");
+    }
+    jobs = jobs.map((job) => ({
+      JobDetails: job.job_id,
+      status: job.status,
+    }));
+    return res.status(201).json({ Jobs: jobs });
+  } catch (err) {
+    console.error(err);
+    return res.status(400).json({ message: "Server error", err });
+  }
+};
+
 export {
   HandleGetAllUsers,
   signup,
@@ -195,4 +216,5 @@ export {
   uploadprofilepic,
   updateprofilepic,
   applyJob,
+  getUserAppliedJobs,
 };

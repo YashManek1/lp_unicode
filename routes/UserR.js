@@ -11,6 +11,7 @@ import {
   uploadprofilepic,
   updateprofilepic,
   applyJob,
+  getUserAppliedJobs,
 } from "../controllers/userC.js";
 
 import {
@@ -25,7 +26,8 @@ import {
   getAllBlogs,
   deleteBlog,
   updateBlog,
-} from "../controllers/blogC.js";
+  getBlogsOfUser,
+} from "../controllers/BlogC.js";
 
 import upload from "../middlewares/multer.js";
 
@@ -42,8 +44,10 @@ Router.post("/unfollow", authUser, unfollow);
 Router.get("/AllFollowers/:id", authUser, getAllFollowers);
 Router.get("/AllFollowing", authUser, getAllFollowing);
 Router.post("/createBlog", authUser, createBlog);
-Router.get("/getBlogs", authUser, getAllBlogs);
+Router.get("/getAllBlogs", authUser, getAllBlogs);
+Router.get("/getBlogs", authUser, getBlogsOfUser);
 Router.delete("/deleteBlog/:id", authUser, deleteBlog);
 Router.put("/updateBlog/:id", authUser, updateBlog);
+Router.get("/appliedJobs", authUser, getUserAppliedJobs);
 
 export default Router;

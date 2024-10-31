@@ -185,6 +185,38 @@ const viewApplicants = async (req, res) => {
   }
 };
 
+const getNoOfApplicants = async (req, res) => {
+  //get no of applicants for a particular job and also the details of user
+  try {
+    const recruiterId = req.recruiter.recruiterId;
+    const jobId = req.params.id;
+    const applications = await ApplicationModel.find({ job_id: jobId })
+      .populate(
+        "user_id",
+        "username email profilePicture tech_stack experience_level bio resume"
+      )
+      .exec();
+    const job = await JobModel.findOne({
+      _id: jobId,
+      recruiter_id: recruiterId,
+    });
+    if (!job) {
+      return res
+        .status(400)
+        .json({ message: "Unauthorized access or job not found" });
+    }
+    const response = {
+      jobId,
+      totalApplications: applications.length,
+      applicants: applications.map((app) => app.user_id),
+    };
+    return res.status(201).json(response);
+  } catch (err) {
+    console.error(err);
+    return res.status(404).send("Server error ", err);
+  }
+};
+
 const shortlistApplicants = async (req, res) => {
   try {
     const recruiterId = req.recruiter.recruiterId;
@@ -274,4 +306,5 @@ export {
   shortlistApplicants,
   rejectApplicants,
   acceptApplicants,
+  getNoOfApplicants,
 };

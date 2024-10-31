@@ -1,4 +1,5 @@
 import express from "express";
+
 import {
   SignupCompany,
   LoginCompany,
@@ -15,7 +16,8 @@ import {
   getAllBlogs,
   deleteBlog,
   updateBlog,
-} from "../controllers/blogC.js";
+  getBlogsOfCompany,
+} from "../controllers/BlogC.js";
 
 import {
   follow,
@@ -31,7 +33,8 @@ const Router = express.Router();
 Router.post("/signup", SignupCompany);
 Router.post("/login", LoginCompany);
 Router.post("/createBlog", authCompany, createBlog);
-Router.get("/getBlogs", authCompany, getAllBlogs);
+Router.get("/getAllBlogs", authCompany, getAllBlogs);
+Router.get("/getBlogs", authCompany, getBlogsOfCompany);
 Router.delete("/deleteBlog/:id", authCompany, deleteBlog);
 Router.put("/updateBlog/:id", authCompany, updateBlog);
 Router.post("/follow", authCompany, follow);
