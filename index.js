@@ -30,6 +30,10 @@ app.use("/users", UserRouter);
 app.use("/company", CompanyRouter);
 app.use("/recruiter", RecruiterRouter);
 
+app.get("/", (req, res) => {
+  res.send("Server Working");
+});
+
 app.listen(PORT, () => {
   console.log(`Server connected at PORT ${PORT}`);
 });
